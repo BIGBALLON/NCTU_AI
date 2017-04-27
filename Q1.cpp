@@ -12,16 +12,14 @@ using namespace std;
 #define SEQ_LEN 1000
 #define SEQ_CNT 50
 
-bool get_common_str15();
-/**********************************************/
 int v15_size = 0;
 vector<string> v15;
-/**********************************************/
 
 vector<string> strs;
 vector< pair<string,int> > ans[SEQ_CNT + 5];
 vector< pair<string,int> > ans_tmp[SEQ_CNT + 5];
 string best_pattern;
+
 
 int get_common_str15(string s1, string s2);
 void find_other_str();
@@ -30,7 +28,6 @@ void output_ans();
 int main(){
 
     freopen( "q1.data", "r", stdin );
-    freopen( "q1_ans.txt", "w", stdout );
     
     int start = clock();
     
@@ -45,13 +42,12 @@ int main(){
 	
 	int end = clock();
 	double used_time = (double)(end - start) /  CLOCKS_PER_SEC;
-//	printf( "used_time: %f", used_time );
+		printf( "used_time: %f", used_time );
 	
 	output_ans();
 	
 	return 0;
 }
-
 
 int get_common_str15(string s1, string s2){
     for( int i = 0; i < SEQ_LEN - 15; ++i ){
@@ -106,6 +102,7 @@ void find_other_str(){
 
 void output_ans(){
 	
+	freopen( "q1_ans.txt", "w", stdout );
 	printf( "pattern: %s\n\n", best_pattern.c_str() );
 	
 	for( int k = 0; k < SEQ_CNT; ++k ){

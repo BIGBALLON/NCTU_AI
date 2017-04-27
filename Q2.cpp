@@ -37,8 +37,8 @@ void output_ans();
 
 int main(){
 
-    freopen( "q2.data", "r", stdin );
-    
+    //freopen( "q2.data", "r", stdin );
+    freopen( "./ex_datasets/ex1_5_mutates.data", "r", stdin );
     int start = clock();
     
     for( int i = 0; i < 50; ++i ){
@@ -88,9 +88,10 @@ int get_common_str15_5(){
 	sort(tmp.begin(),tmp.end(),cmp);
 	v15_5.push_back(tmp[0]);
 	for( int i = 1; i < size; ++i  ){
-		while( tmp[i] == tmp[i-1] ){
+		while( i < size && tmp[i] == tmp[i-1] ){
 			++i;
 		}
+		if( i >= size ) break;
 		v15_5.push_back(tmp[i]);
 	}
 	size = v15_5.size();
@@ -106,7 +107,7 @@ void find_other_str_5(){
 	
 	printf( "start search:\n");
 	int best_ans_match = 0x7fffffff;
-	
+	int best_seq_match = 50;
 	for( int c = 0; c < v15_5_size; ++ c ){
 		
 		for( int k = 0; k < SEQ_CNT; ++k ){
@@ -126,20 +127,22 @@ void find_other_str_5(){
 					matched = true;
 				}
 			}
-			if( !matched ) break; 						//herusitic
+			if( matched ) total_seq_match++;
+			else break;
+			
 			if( total_match > best_ans_match ) break;	//herusitic
-			total_seq_match++;
-//			printf( "%d\n", total_seq_match );
+			
 		}	
 		
-		if( total_seq_match == SEQ_CNT && total_match < best_ans_match ){
+		if( total_seq_match >= best_seq_match && total_match < best_ans_match ){
 			best_ans_match = total_match;
+			best_seq_match = total_seq_match;
 			best_pattern = v15_5[c];
 			for( int k = 0; k < SEQ_CNT; ++k ){
 				ans[k].assign(ans_tmp[k].begin(), ans_tmp[k].end());
 			} 	
 			
-			printf( "find new answer: %s %d\n", best_pattern.c_str(), best_ans_match );
+			printf( "find better answer:\n - PATTERN: %s TOTAL_MATCH: %d SEQ_MATCH: %d - \n", best_pattern.c_str(), best_ans_match, total_seq_match );
 		}
 	}
 }

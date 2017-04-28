@@ -11,7 +11,7 @@ using namespace std;
 
 #define SEQ_LEN 1000
 #define SEQ_CNT 50
-
+#define MAX_MUTATION    7
 int v15_size = 0;
 int v15_5_size = 0;
 vector<string> v15;
@@ -37,8 +37,8 @@ void output_ans();
 
 int main(){
 
-    //freopen( "q2.data", "r", stdin );
-    freopen( "./ex_datasets/ex1_5_mutates.data", "r", stdin );
+    freopen( "q3.data", "r", stdin );
+//    freopen( "./ex_datasets/ex2_5_mutates.data", "r", stdin );
     int start = clock();
     
     for( int i = 0; i < 50; ++i ){
@@ -70,33 +70,34 @@ bool isequal(string s1, string s2, int n){
 }
 
 int get_common_str15_5(){
-	vector<string> tmp;
-	for( int n = 1; n < 50; ++n ){
-	    for( int i = 0; i < SEQ_LEN - 15; ++i ){
-	        for( int j = 0; j < SEQ_LEN - 15; ++j ){
-	            string t1 = strs[0].substr(i, 15);
-	            string t2 = strs[n].substr(j, 15);
-	            if( isequal(t1, t2, 5) ){
-	                tmp.push_back(t1);
-	                tmp.push_back(t2);
-	            }
-	        }   
-	    }	
-	}
-	int size = tmp.size();
-	printf( "before unique: %d\n", size );
-	sort(tmp.begin(),tmp.end(),cmp);
-	v15_5.push_back(tmp[0]);
-	for( int i = 1; i < size; ++i  ){
-		while( i < size && tmp[i] == tmp[i-1] ){
-			++i;
-		}
-		if( i >= size ) break;
-		v15_5.push_back(tmp[i]);
-	}
-	size = v15_5.size();
-	printf( "after unique: %d\n", size );
-    return size;
+//	vector<string> tmp;
+//	for( int n = 1; n < 50; ++n ){
+//	    for( int i = 0; i < SEQ_LEN - 15; ++i ){
+//	        for( int j = 0; j < SEQ_LEN - 15; ++j ){
+//	            string t1 = strs[0].substr(i, 15);
+//	            string t2 = strs[n].substr(j, 15);
+//	            if( isequal(t1, t2, 5) ){
+//	                tmp.push_back(t1);
+//	                tmp.push_back(t2);
+//	            }
+//	        }   
+//	    }	
+//	}
+//	int size = tmp.size();
+//	printf( "before unique: %d\n", size );
+//	sort(tmp.begin(),tmp.end(),cmp);
+//	v15_5.push_back(tmp[0]);
+//	for( int i = 1; i < size; ++i  ){
+//		while( i < size && tmp[i] == tmp[i-1] ){
+//			++i;
+//		}
+//		if( i >= size ) break;
+//		v15_5.push_back(tmp[i]);
+//	}
+//	size = v15_5.size();
+//	printf( "after unique: %d\n", size );
+	v15_5.push_back(string("AATTCTATTATTTAC"));
+    return v15_5.size();
 }
 
 void transform(string& s, int id, int n){
@@ -121,7 +122,7 @@ void find_other_str_5(){
 			bool matched = false;
 			for( int id = 0; id < SEQ_LEN - 15; ++id ){
 				string t = strs[i].substr(id, 15);
-				if( isequal(t, v15_5[c], 5) ){
+				if( isequal(t, v15_5[c], MAX_MUTATION) ){
 					ans_tmp[i].push_back(make_pair(t, id + 1));
 					total_match++;
 					matched = true;

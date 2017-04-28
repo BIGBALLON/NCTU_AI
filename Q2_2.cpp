@@ -14,41 +14,53 @@ using namespace std;
 #define SEQ_LEN         1000
 #define PAT_LEN         15
 #define SEQ_CNT         50
-#define MAX_MUTATION    5
+#define MAX_MUTATION    7
 #define MAX_SCORE       1000
+
 /***********************************************/
 vector<string> sequence;
 vector<string> pattern[SEQ_CNT];
+string check_string;
 vector<pair<string,int> > pat_que;
 /***********************************************/
 
+/***********************************************/
 set<string> hash_table;
-
-string best_pattern;
-
 char itoc[] = { 'T', 'C', 'G', 'A' };  
+string best_pattern;
+int best_score = 0x3f3f3f3f;
+int best_match = 0x3f3f3f3f;
+/***********************************************/
+
+
+/***********************************************/
 void load_sequence();
+void load_genome();
 void get_all_pattern();
 void gen_queue();
 inline string random_select();
 inline string random_mutation(string str);
 int isequal(string s1, string s2, int n);
 int search_onece(string pat);
-
 void output_ans();
+/***********************************************/
 
+
+/***********************************************/
 bool cmp_pair(const pair<string,int> a, const pair<string ,int> b) { return a.second < b.second; }
 bool cmp_str(const string a, const string b) { return a < b; }
+/***********************************************/
+
+
 
 int start = clock();
     
 int main(){
 
 	srand (time(NULL));
-//    freopen( "q2.data", "r", stdin );
-	freopen( "./ex_datasets/ex2_5_mutates.data", "r", stdin );
 
 	load_sequence();
+	load_genome();
 	get_all_pattern();
 	gen_queue();
 
@@ -80,7 +92,6 @@ int main(){
 	double used_time = (double)(end - start) /  CLOCKS_PER_SEC;
 	printf( "CUR USED TIME: %f\n", used_time );
 
-
 	return 0;
 }
 
@@ -91,6 +102,13 @@ int isequal(string s1, string s2, int n){
 		if( cnt > n ) return -1;
 	}
 	return cnt;
+}
+
+bool check_answer(string str){
+	if( check_string.find(str) != string::npos ){
+		return false;
+	}
+	return true;
 }
 
 int search_onece(string pat){
@@ -118,7 +136,8 @@ int search_onece(string pat){
 		}
 	}
 
-	if( total_seq_match == SEQ_CNT ){
+	if( (total_seq_match == SEQ_CNT) && (best_score > score) && check_answer(pat) ){
+		best_score = score;
 		best_pattern = pat;
 		printf( "\n-----------------------------------------------------------\n" );
 		printf( "FIND ANSWER:\n - PATTERN: %s  TOTAL MATCH: %d SCORE: %d - \n", best_pattern.c_str(), total_match, score );
@@ -169,7 +188,19 @@ void get_all_pattern(){
 	}
 }
 
+void load_genome(){
+	freopen( "genome.data", "r", stdin );
+	string genome_tmp;
+	for( int i = 0; i < 1000; ++i ){
+		cin >> genome_tmp;
+		check_string = check_string + genome_tmp + ' '; 
+	}
+}
+
 void load_sequence(){
+//	freopen( "q3.data", "r", stdin );
+	//  freopen( "q2.data", "r", stdin );
+	freopen( "./ex_datasets/ex6_7_mutates.data", "r", stdin );
 	for( int i = 0; i < SEQ_CNT; ++i ){
     	string tmp;
     	cin >> tmp;

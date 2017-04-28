@@ -18,7 +18,7 @@ using namespace std;
 #define MAX_SCORE       1000
 /***********************************************/
 vector<string> sequence;
-vector<string> pattern;
+vector<string> pattern[SEQ_CNT];
 vector<pair<string,int> > pat_que;
 /***********************************************/
 
@@ -27,47 +27,49 @@ set<string> hash_table;
 string best_pattern;
 
 char itoc[] = { 'T', 'C', 'G', 'A' };  
-void output_ans();
-void get_all_pattern();
 void load_sequence();
+void get_all_pattern();
+void gen_queue();
 inline string random_select();
+inline string random_mutation(string str);
 int isequal(string s1, string s2, int n);
 int search_onece(string pat);
-void gen_queue();
 
-bool cmp(const pair<string,int> a, const pair<string ,int> b) { return a.second < b.second; }
+void output_ans();
 
+bool cmp_pair(const pair<string,int> a, const pair<string ,int> b) { return a.second < b.second; }
+bool cmp_str(const string a, const string b) { return a < b; }
 
+int start = clock();
+    
 int main(){
 
 	srand (time(NULL));
-    freopen( "q2.data", "r", stdin );
-	//freopen( "./ex_datasets/ex2_5_mutates.data", "r", stdin );
-	
-    int start = clock();
+//    freopen( "q2.data", "r", stdin );
+	freopen( "./ex_datasets/ex2_5_mutates.data", "r", stdin );
 
 	load_sequence();
 	get_all_pattern();
 	gen_queue();
 
+    int iteration = 1;
     while( true ){
+    	string ran_select_pat = random_select();
     	for( int i = 0; i < MAX_MUTATION; ++i ){
+    		string ran_mutation_pat = random_mutation( ran_select_pat );
     		int ran_score = 0; 
-    		string ran = random_select();
-	        if( hash_table.find(ran) != hash_table.end() ){
+	        if( hash_table.find(ran_mutation_pat) != hash_table.end() ){
 	        	continue;
 			}else{
-				hash_table.insert(ran);
+				hash_table.insert(ran_mutation_pat);
 			}
-	        ran_score = search_onece(ran);
+	        ran_score = search_onece(ran_mutation_pat);
 			if( ran_score < pat_que[500].second ){
 				if( pat_que.size() >= 2000  ) pat_que.pop_back();
-				pat_que.push_back( make_pair(ran,ran_score) );
+				pat_que.push_back( make_pair(ran_mutation_pat,ran_score) );
+				sort( pat_que.begin(), pat_que.end(), cmp_pair );
 			}
-			if( iteration % 10 == 0 ){
-				sort(pat_que.begin(), pat_que.end(),cmp);
-			}
-			if( iteration % 50 == 0 ){
+			if( iteration % 100 == 0 ){
 				printf( "%d %d %d\r", iteration, pat_que[0].second, hash_table.size() );
 			}
 			iteration += 1;
@@ -76,22 +78,10 @@ int main(){
 
 	int end = clock();
 	double used_time = (double)(end - start) /  CLOCKS_PER_SEC;
-	printf( "used_time: %f", used_time );
+	printf( "CUR USED TIME: %f\n", used_time );
 
 
 	return 0;
-}
-
-void gen_queue(){
-	int start = clock();
-	for( int i = 0; i < pattern.size(); ++i ){
-		int score = search_onece(pattern[i]);
-		pat_que.push_back(make_pair(pattern[i],score));
-	}
-	sort(pat_que.begin(), pat_que.end(),cmp);
-	int end = clock();
-	double used_time = (double)(end - start) /  CLOCKS_PER_SEC;
-	printf( "used_time: %f\n", used_time );
 }
 
 int isequal(string s1, string s2, int n){
@@ -111,9 +101,8 @@ int search_onece(string pat){
 	for( int i = 0; i < SEQ_CNT; ++i ){
 		bool matched = false;
 		int min_mu = 15;
-		for( int id = 0; id < SEQ_LEN - 15; ++id ){
-			string t = sequence[i].substr(id, 15);
-			int sc = isequal(t, pat, MAX_MUTATION);
+		for( int n = 0; n < pattern[i].size(); ++n ){
+			int sc = isequal(pattern[i][n], pat, MAX_MUTATION);
 			if( sc != -1 ){
 				matched = true;
 				if( sc < min_mu ) min_mu = sc;
@@ -131,23 +120,52 @@ int search_onece(string pat){
 
 	if( total_seq_match == SEQ_CNT ){
 		best_pattern = pat;
-		printf( "FIND ANSWER:\n - PATTERN: %s  TOTAL MATCH: %d - \n", best_pattern.c_str(), total_match );
+		printf( "\n-----------------------------------------------------------\n" );
+		printf( "FIND ANSWER:\n - PATTERN: %s  TOTAL MATCH: %d SCORE: %d - \n", best_pattern.c_str(), total_match, score );
+		int end = clock();
+		double used_time = (double)(end - start) /  CLOCKS_PER_SEC;
+		printf( "CUR USED TIME: %f", used_time );
+		printf( "\n-----------------------------------------------------------\n" );
 	}
 	return score;
 }
 
-inline string random_select(){
-	int num = rand() % 985;
-	string ran = pattern[num];
+inline string random_mutation(string source){
+	string ran = source;
 	int id = rand() % 15;
 	int n = rand() % 4;	
 	ran[id] = itoc[n];	
 	return ran;
 }
 
+inline string random_select(){
+	int num = rand() % ( 985 + 50 );
+	while( num >= pat_que.size() ){
+		num = rand() % ( 985 + 50 );
+	}
+	string ran = pat_que[num].first;
+	return ran;
+}
+
+void gen_queue(){
+	int start = clock();
+	for( int i = 0; i < pattern[0].size(); ++i ){
+		int score = search_onece(pattern[0][i]);
+		pat_que.push_back(make_pair(pattern[0][i],score));
+		hash_table.insert(pattern[0][i]);
+	}
+	sort(pat_que.begin(), pat_que.end(),cmp_pair);
+	int end = clock();
+	double used_time = (double)(end - start) /  CLOCKS_PER_SEC;
+	printf( "used_time: %f\n", used_time );
+}
+
 void get_all_pattern(){
-	for( int st = 0; st < SEQ_LEN - PAT_LEN; ++st ){
-		pattern.push_back(sequence[0].substr(st, PAT_LEN));
+	
+	for( int n = 0; n < SEQ_CNT; ++n ){
+		for( int st = 0; st < SEQ_LEN - PAT_LEN; ++st ){
+			pattern[n].push_back(sequence[n].substr(st, PAT_LEN));
+		}	
 	}
 }
 

@@ -1,2 +1,3 @@
 # DNA_SEQ
-nothing. now
+
+Artificial Intelligence Term Project Spring 2017

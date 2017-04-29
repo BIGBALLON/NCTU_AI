@@ -1,3 +1,8 @@
+/***********************************************************
+** Artificial Intelligence project 2017
+** Method use:  Genetic Algorithm + Some Heuristics + Tricks
+************************************************************/
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -115,6 +120,7 @@ static string best_pattern;
 int main() {
 
     srand(time(NULL));
+
 	load_sequence();
 	load_genome();
 	get_all_pattern();
@@ -247,6 +253,7 @@ void gen_queue() {
 	for (int n = 0; n < load_que_cnt; ++n) {
 		double used_time = (double)(clock() - start) / CLOCKS_PER_SEC;
 		printf("GENERATE QUEEN: %d CUR TIME: %f\r", n + 1, used_time);
+
 		for (int i = 0; i < pattern[n].size(); ++i) {
 			if (hash_table.find(pattern[n][i]) != hash_table.end()) continue;
 			hash_table.insert(pattern[n][i]);

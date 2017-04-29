@@ -11,7 +11,6 @@
 #include <set>
 using namespace std;
 
-
 #define SEQ_LEN         1000
 #define PAT_LEN         15
 #define DNA_NUM         4
@@ -19,9 +18,18 @@ using namespace std;
 #define MAX_SCORE       0x3f3f3f3f
 #define QUE_CNT         20
 
-//#define QUESTION_2
-#define QUESTION_3
 
+/***********************************************************
+** Define QUESTION_2 to solve question 2
+** Define QUESTION_3 to solve question 3
+************************************************************/
+#define QUESTION_2
+//#define QUESTION_3
+
+
+/***********************************************************
+** Set up file path & load_mutation & load_que_cnt
+************************************************************/
 #ifdef QUESTION_2
 #define MAX_MUTATION    5
 char output_file[] = "q2_ans.txt";
@@ -42,7 +50,23 @@ int load_que_cnt = QUE_CNT;
 #endif //QUESTION_3
 
 
+/***********************************************************
+** sequence     ->   Store all the seq
+** pattern      ->   Store all the pat
+** pat_que      ->   Genetic Algorithm's queue
+** hash_table   ->   Avoiding repeated states
+** trans_table  ->   Mutation table
+************************************************************/
+vector<string> sequence;
+vector<string> pattern[SEQ_CNT];
+vector<pair<string, int> > pat_que;
+set<string> hash_table;
+char trans_table[] = { 'T', 'C', 'G', 'A' };
 
+
+/***********************************************************
+** Define ans_node to store answer
+************************************************************/
 typedef struct ANS_NODE {
 	string ans_pat;
 	int start_id;
@@ -57,49 +81,36 @@ typedef struct ANS_NODE {
 }ans_node;
 
 
-/***********************************************/
-vector<string> sequence;
-vector<string> pattern[SEQ_CNT];
-vector<pair<string, int> > pat_que;
-vector<ans_node> ans[SEQ_CNT];
-vector<ans_node> ans_tmp[SEQ_CNT];
-
-set<string> hash_table;
-
-char trans_table[] = { 'T', 'C', 'G', 'A' };
-
-
-int best_score = 0x3f3f3f3f;
-int best_match = 0x3f3f3f3f;
-string best_pattern;
-
-/***********************************************/
-
-
-/***********************************************/
+/***********************************************************
+** Define all the functions
+************************************************************/
 void load_sequence();
 void load_genome();
 void get_all_pattern();
 void gen_queue();
-inline int random_select();
-inline void random_mutation(string& source);
-inline int isequal(string& s1, string& s2, int n);
-inline bool check_stop();
+void output_ans();
 int search_onece(string pat);
 int search_load(string pat);
-void output_ans();
-/***********************************************/
-
-
-/***********************************************/
+inline int random_select();
+inline int isequal(string& s1, string& s2, int n);
+inline void random_mutation(string& source);
+inline bool check_stop();
 bool cmp_pair(const pair<string, int> a, const pair<string, int> b) { return a.second < b.second; }
-bool cmp_str(const string a, const string b) { return a < b; }
-/***********************************************/
 
 
-int start = clock();
-int iteration = 1;
-int pre_iteration = iteration;
+/***********************************************************
+** iteration    ->   Store GA's iteration
+** start        ->   Store program's start time
+** best_score   ->   Store minimum mutation numbers
+** best_pattern ->   Store best pattern
+************************************************************/
+static int iteration = 1;
+static int pre_iteration = iteration;
+static int start = clock();
+static int best_score = MAX_SCORE;
+static string best_pattern;
+
+
 
 int main() {
 
@@ -131,6 +142,12 @@ int main() {
 			double used_time = (double)(clock() - start) / CLOCKS_PER_SEC;
 			printf("ITERATION: %d   MIN MUTATION: %d   CUR TIME: %f\r", iteration, pat_que[0].second, used_time);
 
+            /*
+            ** need to stop, but it's a special judge.
+            ** so if you want to make sure get the optimal answer,
+            ** just run more iterations
+            ** [ when you find the answer you want, let the program stop ]
+            */
 
             if(check_stop()) break;
 		}
@@ -171,7 +188,7 @@ int search_onece(string pat) {
 	int score = 0;
 	for (int i = 0; i < SEQ_CNT; ++i) {
 		bool matched = false;
-		int min_mu = 15;
+		int min_mu = PAT_LEN;
 		for (int n = 0; n < pattern[i].size(); ++n) {
 			int sc = isequal(pattern[i][n], pat, MAX_MUTATION);
 			if (sc != -1) {
@@ -201,7 +218,7 @@ int search_load(string pat) {
 	int score = 0;
 	for (int i = 0; i < SEQ_CNT; ++i) {
 		bool matched = false;
-		int min_mu = 15;
+		int min_mu = PAT_LEN;
 		for (int n = 0; n < pattern[i].size(); ++n) {
 			int sc = isequal(pattern[i][n], pat, load_mutation);
 			if (sc != -1) {
@@ -222,7 +239,7 @@ inline void random_mutation(string& source) {
 }
 
 inline int random_select() {
-	return rand() % (min<int>(pat_que.size(), 985 + 550));
+	return rand() % (min<int>(pat_que.size(), SEQ_LEN + 550));
 }
 
 void gen_queue() {
@@ -268,9 +285,11 @@ void load_genome() {
 
 void load_sequence() {
 
-	//freopen( "./datasets/q2.data", "r", stdin );
 	freopen(input_file, "r", stdin);
+
+	//freopen( "./datasets/q2.data", "r", stdin );
 	//freopen("./ex_datasets/ex3_5_mutates.data", "r", stdin);
+
 	for (int i = 0; i < SEQ_CNT; ++i) {
 		string tmp;
 		cin >> tmp;
@@ -309,7 +328,6 @@ void output_ans() {
 
 	for( int k = 0; k < SEQ_CNT; ++k ){
 		printf( "S%d:\n", k + 1 );
-		int star_flag = 1;
 		for( int i = 0; i < output[k].size(); ++i ){
             if( output[k][i].is_min_mutation ){
                 printf( "*" );

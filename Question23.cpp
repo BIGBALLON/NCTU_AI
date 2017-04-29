@@ -12,13 +12,36 @@
 using namespace std;
 
 
-#define MAX_MUTATION    5
 #define SEQ_LEN         1000
 #define PAT_LEN         15
 #define DNA_NUM         4
 #define SEQ_CNT         50
 #define MAX_SCORE       0x3f3f3f3f
-#define QUE_CNT         30
+#define QUE_CNT         20
+
+//#define QUESTION_2
+#define QUESTION_3
+
+#ifdef QUESTION_2
+#define MAX_MUTATION    5
+char output_file[] = "q2_ans.txt";
+char input_file[] = "./datasets/q2.data";
+char genome_file[] = "./datasets/genome.data";
+
+int load_mutation = 6;
+int load_que_cnt = 10;
+#endif // QUESTION_2
+
+#ifdef QUESTION_3
+#define MAX_MUTATION    7
+char output_file[] = "q3_ans.txt";
+char input_file[] = "./datasets/q3.data";
+char genome_file[] = "./datasets/genome.data";
+int load_mutation = MAX_MUTATION;
+int load_que_cnt = QUE_CNT;
+#endif //QUESTION_3
+
+
 
 typedef struct ANS_NODE {
 	string ans_pat;
@@ -33,6 +56,7 @@ typedef struct ANS_NODE {
 	}
 }ans_node;
 
+
 /***********************************************/
 vector<string> sequence;
 vector<string> pattern[SEQ_CNT];
@@ -42,13 +66,11 @@ vector<ans_node> ans_tmp[SEQ_CNT];
 
 set<string> hash_table;
 
-char itoc[] = { 'T', 'C', 'G', 'A' };
+char trans_table[] = { 'T', 'C', 'G', 'A' };
 
 
 int best_score = 0x3f3f3f3f;
 int best_match = 0x3f3f3f3f;
-int load_mutation = MAX_MUTATION;
-int load_que_cnt = QUE_CNT;
 string best_pattern;
 
 /***********************************************/
@@ -62,6 +84,7 @@ void gen_queue();
 inline int random_select();
 inline void random_mutation(string& source);
 inline int isequal(string& s1, string& s2, int n);
+inline bool check_stop();
 int search_onece(string pat);
 int search_load(string pat);
 void output_ans();
@@ -75,20 +98,20 @@ bool cmp_str(const string a, const string b) { return a < b; }
 
 
 int start = clock();
+int iteration = 1;
+int pre_iteration = iteration;
 
 int main() {
 
-	srand(time(NULL));
+    srand(time(NULL));
 	load_sequence();
 	load_genome();
 	get_all_pattern();
 	gen_queue();
 
-	int iteration = 1;
-
-
 	while (true) {
-		string ran_select_pat = pat_que[random_select()].first;
+
+	    string ran_select_pat = pat_que[random_select()].first;
 		for (int i = 0; i < MAX_MUTATION; ++i) {
 			random_mutation(ran_select_pat);
 			int ran_score = 0;
@@ -106,12 +129,32 @@ int main() {
 				pat_que.pop_back();
 			}
 			double used_time = (double)(clock() - start) / CLOCKS_PER_SEC;
-			printf("ITERATION: %d  MIN SCORE: %d  CUR TIME: %f\r", iteration, pat_que[0].second, used_time);
+			printf("ITERATION: %d   MIN MUTATION: %d   CUR TIME: %f\r", iteration, pat_que[0].second, used_time);
+
+
+            if(check_stop()) break;
 		}
 		iteration += 1;
 	}
 
+    output_ans();
 	return 0;
+}
+
+inline bool check_stop(){
+#ifdef QUESTION_3
+    if( iteration - pre_iteration > 5000 && best_score <= 211 ){
+        return true;
+    }
+#endif // QUESTION_3
+
+#ifdef QUESTION_2
+    if( iteration - pre_iteration > 10000 && best_score <= 165 ){
+        return true;
+    }
+#endif // QUESTION_2
+
+    return false;
 }
 
 inline int isequal(string& s1, string& s2, int n) {
@@ -143,6 +186,7 @@ int search_onece(string pat) {
 	if ( best_score > score ) {
 		best_score = score;
 		best_pattern = pat;
+		pre_iteration = iteration;
 		printf("\n-----------------------------------------------------------\n");
 		printf("- FIND PATTERN: %s \n- SCORE: %d \n", best_pattern.c_str(), score);
 		int end = clock();
@@ -174,27 +218,22 @@ int search_load(string pat) {
 inline void random_mutation(string& source) {
 	int id = rand() % PAT_LEN;
 	int n = rand() % DNA_NUM;
-	source[id] = itoc[n];
+	source[id] = trans_table[n];
 }
 
 inline int random_select() {
-	return rand() % (min<int>(pat_que.size(), 985 + 350));
+	return rand() % (min<int>(pat_que.size(), 985 + 550));
 }
 
 void gen_queue() {
 
-    if( MAX_MUTATION == 5 ){
-        load_mutation = 6;
-        load_que_cnt = 10;
-    }
 	for (int n = 0; n < load_que_cnt; ++n) {
 		double used_time = (double)(clock() - start) / CLOCKS_PER_SEC;
-		printf("GENERATE QUEEN: %d CUR_TIME: %f\r", n + 1, used_time);
+		printf("GENERATE QUEEN: %d CUR TIME: %f\r", n + 1, used_time);
 		for (int i = 0; i < pattern[n].size(); ++i) {
 			if (hash_table.find(pattern[n][i]) != hash_table.end()) continue;
 			hash_table.insert(pattern[n][i]);
 
-			//int score = search_onece(pattern[n][i]);
 			int score = search_load(pattern[n][i]);
 			if (score == MAX_SCORE) score /= 2;
 			pat_que.push_back(make_pair(pattern[n][i], score));
@@ -217,7 +256,7 @@ void get_all_pattern() {
 }
 
 void load_genome() {
-	freopen("./datasets/genome.data", "r", stdin);
+	freopen(genome_file, "r", stdin);
 	string one_genome;
 	for (int n = 0; n < 1000; ++n) {
 		cin >> one_genome;
@@ -229,9 +268,9 @@ void load_genome() {
 
 void load_sequence() {
 
-	freopen( "./datasets/q2.data", "r", stdin );
-	//freopen("./ex_datasets/ex6_7_mutates.data", "r", stdin);
-	//freopen("./ex_datasets/ex1_5_mutates.data", "r", stdin);
+	//freopen( "./datasets/q2.data", "r", stdin );
+	freopen(input_file, "r", stdin);
+	//freopen("./ex_datasets/ex3_5_mutates.data", "r", stdin);
 	for (int i = 0; i < SEQ_CNT; ++i) {
 		string tmp;
 		cin >> tmp;
@@ -240,6 +279,43 @@ void load_sequence() {
 }
 
 void output_ans() {
-	freopen("q2_ans.txt", "w", stdout);
-}
 
+    printf( "\nSAVE ANSWER.\n");
+	freopen(output_file, "w", stdout);
+
+    vector<ans_node> output[SEQ_CNT];
+
+    for (int i = 0; i < SEQ_CNT; ++i) {
+		int min_mu = 15;
+		for (int n = 0; n < pattern[i].size(); ++n) {
+			int sc = isequal(pattern[i][n], best_pattern, MAX_MUTATION);
+			if (sc != -1) {
+                if( min_mu > sc ) min_mu = sc;
+                output[i].push_back( ans_node(pattern[i][n],n+1,sc ));
+			}
+		}
+		int index = 0;
+		int start = 1001;
+		for(int j = 0; j < output[i].size(); ++j){
+            if(output[i][j].mutation_cnt == min_mu && output[i][j].start_id < start ){
+                index = j;
+                start = output[i][j].start_id;
+            }
+		}
+		output[i][index].is_min_mutation = true;
+	}
+
+	printf( "pattern: %s\n\n", best_pattern.c_str() );
+
+	for( int k = 0; k < SEQ_CNT; ++k ){
+		printf( "S%d:\n", k + 1 );
+		int star_flag = 1;
+		for( int i = 0; i < output[k].size(); ++i ){
+            if( output[k][i].is_min_mutation ){
+                printf( "*" );
+            }else printf( " " );
+			printf( "{(%s,%d)}\n", output[k][i].ans_pat.c_str(), output[k][i].start_id );
+		}
+		printf("\n");
+	}
+}

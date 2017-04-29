@@ -1,0 +1,26 @@
+GENERATE QUEEN: 10 CUR TIME: 11.221000
+GENERATE USED TIME: 12.254000
+-----------------------------------------------------------
+ITERATION: 71000   MIN MUTATION: 203   CUR TIME: 21.209000
+-----------------------------------------------------------
+- FIND PATTERN: CTGTGAGATCAACTG
+- SCORE: 193
+- CUR TIME: 21.270000
+-----------------------------------------------------------
+ITERATION: 107000   MIN MUTATION: 193   CUR TIME: 26.119000
+-----------------------------------------------------------
+- FIND PATTERN: CTGTCAGATCAACTG
+- SCORE: 186
+- CUR TIME: 26.167000
+-----------------------------------------------------------
+ITERATION: 110000   MIN MUTATION: 186   CUR TIME: 26.536000
+-----------------------------------------------------------
+- FIND PATTERN: CTGTTAGATCAACTG
+- SCORE: 165
+- CUR TIME: 26.637000
+-----------------------------------------------------------
+ITERATION: 121000   MIN MUTATION: 165   CUR TIME: 28.057000
+SAVE ANSWER.
+
+Process returned 0 (0x0)   execution time : 28.470 s
+Press any key to continue.

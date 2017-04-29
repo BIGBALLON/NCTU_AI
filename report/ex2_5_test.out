@@ -1,0 +1,24 @@
+GENERATE QUEEN: 10 CUR TIME: 12.201000
+GENERATE USED TIME: 13.371000
+-----------------------------------------------------------
+ITERATION: 20000   MIN MUTATION: 195   CUR TIME: 16.133000
+-----------------------------------------------------------
+- FIND PATTERN: AGAGCATACTGCGCT
+- SCORE: 190
+- CUR TIME: 16.249000
+-----------------------------------------------------------
+ITERATION: 26000   MIN MUTATION: 190   CUR TIME: 17.011000
+-----------------------------------------------------------
+- FIND PATTERN: AGACCATACTGCGCT
+- SCORE: 186
+- CUR TIME: 17.036000
+-----------------------------------------------------------
+ITERATION: 84000   MIN MUTATION: 186   CUR TIME: 26.249000
+-----------------------------------------------------------
+- FIND PATTERN: AGATCATACTGCGCT
+- SCORE: 160
+- CUR TIME: 26.278000
+-----------------------------------------------------------
+ITERATION: 95000   MIN MUTATION: 160   CUR TIME: 28.040000
+Process returned 0 (0x0)   execution time : 28.467 s
+Press any key to continue.

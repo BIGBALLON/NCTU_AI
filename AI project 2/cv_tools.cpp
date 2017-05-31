@@ -90,7 +90,9 @@ int set_class_num(string file){
         src.close();
         dest.close();
     }
-
+    for(int j = 0; j < class_vector.size(); ++j){
+       check[class_vector[j]] = j;
+    }
     return class_vector.size();
 }
 
@@ -105,13 +107,7 @@ bool load_and_split(string file){
         data_cnt++;
         size_t found = raw_str.find_last_of(", ");
         string class_value = raw_str.substr(found+1);
-        if(check.find(class_value) == check.end()){
-            check[class_value] = class_cnt;
-            class_data[class_cnt].push_back(raw_str);
-            class_cnt++;
-        }else{
-            class_data[ check[class_value] ].push_back(raw_str);
-        }
+        class_data[ check[class_value] ].push_back(raw_str);
     }
     datas.close();
 
@@ -127,6 +123,10 @@ bool load_and_split(string file){
         output_data.open(pre+"_cv"+ ss.str() + ".data");
         test.clear();
         data.clear();
+        auto engine = std::default_random_engine{};
+        for(int j = 0; j < class_number; ++j ){
+            std::shuffle(std::begin(class_data[j]), std::end(class_data[j]), engine);
+        }
         for(int j = 0; j < class_number; ++j ){
             int cnt = class_data[j].size() / SPLIT_K;
             for( int k = 0; k < cnt; ++k ){
@@ -140,12 +140,10 @@ bool load_and_split(string file){
                 data.push_back(class_data[j][k]);
             }
         }
-        auto engine = std::default_random_engine{};
         std::shuffle(std::begin(test), std::end(test), engine);
         for( int k = 0; k < test.size(); ++k ){
             output_test << test[k] << endl;
         }
-
         std::shuffle(std::begin(data), std::end(data), engine);
         for( int k = 0; k < data.size(); ++k ){
             output_data << data[k] << endl;

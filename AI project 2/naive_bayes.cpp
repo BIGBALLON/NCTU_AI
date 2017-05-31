@@ -13,7 +13,7 @@ using namespace std;
 string file_name;
 
 #define MAX_VALUE 1024
-#define MAX_CLASS 66
+#define MAX_CLASS 100
 #define MAX_CNT 10000
 #define MAX_SPLITE 100
 vector<string> class_vector;
@@ -25,7 +25,12 @@ map<string,int> number;
 int feature_number = 0;
 int class_number = 0;
 int total_data = 0;
-double deviation[MAX_VALUE] = {0};
+double pi = 3.141592653;
+
+int continuous[MAX_VALUE];
+double mean[MAX_CLASS][MAX_VALUE];
+double variance[MAX_CLASS][MAX_VALUE];
+
 map< pair<int,string>, double> probability;
 
 template <class Type>  
@@ -141,24 +146,38 @@ void load_data(){
     }
 
     for (int i = 0; i < feature_number; ++i){
-        deviation[i] = -10086;
+        continuous[i] = 0;
         if( value_vector[i].size() == 0 ){
-            double minn = 99999999999;
-            double maxx = -99999999999;
+            continuous[i] = 1;
             for (int j = 0; j < class_number; ++j){
-                for (int k = 0; class_data[j][k].size(); ++k){
-                    double tmp = stringToNum<double>(class_data[j][k][i]);
-                    // cout << tmp << endl;
-                    if( minn > tmp ){
-                        minn = tmp;
-                    }
-                    if( maxx < tmp ){
-                        maxx = tmp;
-                    }
+                double mean_tmp = 0;
+                int class_cnt = number[class_vector[j]];
+                for (int k = 0; k < class_cnt; ++k){
+                    mean_tmp += stringToNum<double>(class_data[j][k][i]);
                 }
+                mean_tmp /= class_cnt;
+                mean[j][i] = mean_tmp;
             }
-            // cout << maxx << " " << minn << endl;
-            deviation[i] = maxx - minn;
+        }
+    }
+
+    for (int i = 0; i < feature_number; ++i){
+        if( continuous[i] ){
+            for (int j = 0; j < class_number; ++j){
+                int class_cnt = number[class_vector[j]];
+
+                double mean_tmp = mean[j][i];
+                double variance_tmp = 0;
+                for (int k = 0; k < class_cnt; ++k){
+                    variance_tmp += (stringToNum<double>(class_data[j][k][i]) - mean[j][i])
+                                    *(stringToNum<double>(class_data[j][k][i]) - mean[j][i]);
+                }
+                variance_tmp /= class_cnt;
+                variance[j][i] = variance_tmp;
+    
+                // cout << "mean :" << mean[j][i] << "  ";
+                // cout << "variance :" << variance[j][i] << endl;
+            }
         }
     }
     datas.close();
@@ -189,26 +208,24 @@ void do_naive_bayes(){
                     p = p * probability[make_pair(i,tmp[k])];
                     continue;
                 }
-                for (int j = 0; j < class_cnt; ++j){
-                    // cout << class_data[i][j][k]  << " " << tmp[k] << endl;
-                    if( deviation[k] == -10086 ){
+                if( continuous[k] == 0 ){
+                    for (int j = 0; j < class_cnt; ++j){
                         if( class_data[i][j][k] == tmp[k] ){
                             cnt++;
                         }
-                    }else{
-                        double real1 = stringToNum<double>(class_data[i][j][k]);
-                        double real2 = stringToNum<double>(tmp[k]);
-                        if( fabs(real1 - real2) <= deviation[k] / 100.0 ){
-                            cnt++;
-                        }
                     }
+                    double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size());
+                    // double pp = (cnt) / (double)(class_cnt);
+                    probability[make_pair(i,tmp[k])] = pp;
+                    p = p * pp;
+                }else{
+                    double x = stringToNum<double>(tmp[k]);
+                    double pp = 1.0/(sqrt(pi * 2 * variance[i][k]))
+                                * exp(( -(x-mean[i][k]) * (x-mean[i][k])) / ( 2 * variance[i][k] )  );
+                    p = p * pp;
+
                 }
-                double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size());
-                // double pp = (cnt) / (double)(class_cnt);
-                probability[make_pair(i,tmp[k])] = pp;
-                p = p * pp;
             }
-            // cout << i << ": " << p << endl;
             if( max_p < p ){
                 max_p = p;
                 best_class = i;
@@ -221,8 +238,9 @@ void do_naive_bayes(){
     cout << total_acc / total_test << endl;
 }
 
-int main(){
-    cin >> file_name;
+int main(int argc, char const *argv[]){
+
+    file_name = argv[1];
     load_names();
     // debug();
     load_data();

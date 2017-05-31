@@ -157,7 +157,6 @@ void load_data(){
                     }
                 }
             }
-
             // cout << maxx << " " << minn << endl;
             deviation[i] = maxx - minn;
         }
@@ -181,10 +180,10 @@ void do_naive_bayes(){
         double max_p = -1;
         for (int i = 0; i < class_number; ++i){
             int class_cnt = number[class_vector[i]];
-            // double p = ((double)class_cnt + 1.0 )/ (total_data + class_number * 1.0);
-            double p = ((double)class_cnt)/ (total_data);
+            double p = ((double)class_cnt + 1.0 )/ (total_data + class_number * 1.0);
+            // double p = ((double)class_cnt)/ (total_data);
             
-            for (int k = 0; k < tmp.size() - 1; ++k){
+            for (int k = 0; k < feature_number; ++k){
                 double cnt = 0;
                 if(probability.find(make_pair(i,tmp[k])) != probability.end()){
                     p = p * probability[make_pair(i,tmp[k])];
@@ -192,7 +191,7 @@ void do_naive_bayes(){
                 }
                 for (int j = 0; j < class_cnt; ++j){
                     // cout << class_data[i][j][k]  << " " << tmp[k] << endl;
-                    if( deviation[j] == -10086 ){
+                    if( deviation[k] == -10086 ){
                         if( class_data[i][j][k] == tmp[k] ){
                             cnt++;
                         }
@@ -204,12 +203,12 @@ void do_naive_bayes(){
                         }
                     }
                 }
-                // double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size());
-                double pp = (cnt) / (double)(class_cnt);
+                double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size());
+                // double pp = (cnt) / (double)(class_cnt);
                 probability[make_pair(i,tmp[k])] = pp;
                 p = p * pp;
             }
-            cout << i << ": " << p << endl;
+            // cout << i << ": " << p << endl;
             if( max_p < p ){
                 max_p = p;
                 best_class = i;

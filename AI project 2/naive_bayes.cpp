@@ -9,62 +9,72 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+
 using namespace std;
-string file_name;
 
-#define MAX_VALUE 1024
-#define MAX_CLASS 100
-#define MAX_CNT 10000
-#define MAX_SPLITE 100
-vector<string> class_vector;
-vector<string> feature_vector;
-vector<string> value_vector[MAX_VALUE];
-vector<string> class_data[MAX_CLASS][MAX_CNT];
-map<string,int> check;
-map<string,int> number;
-int feature_number = 0;
-int class_number = 0;
-int total_data = 0;
-double pi = 3.141592653;
+#define MAX_VALUE    1024
+#define MAX_CLASS    100
+#define MAX_CNT      10000
+#define MAX_SPLITE   100
+const double pi    = 3.141592653; 
 
+static string file_name;
+static int feature_number = 0;
+static int class_number = 0;
+static int total_data = 0;
+
+// some vectors and maps to save data
+vector<string> class_vector;                        // a vector to save all class
+vector<string> feature_vector;                      // a vector to save all features
+vector<string> value_vector[MAX_VALUE];             // vectors to save all values of the each features
+vector<string> class_data[MAX_CLASS][MAX_CNT];      // vectors to save all the training data
+map<string,int> index;                              // a map to mapping class string to index number
+map<string,int> number;                             // a map to mapping class string to count number
+
+// discretization
 int continuous[MAX_VALUE];
 double mean[MAX_CLASS][MAX_VALUE];
 double variance[MAX_CLASS][MAX_VALUE];
 
+// save the probability to save time
 map< pair<int,string>, double> probability;
 
-template <class Type>  
-Type stringToNum(const string& str)  
-{  
-    istringstream iss(str);  
-    Type num;  
-    iss >> num;  
-    return num;      
-}  
-
-template<typename Out>
-void split(const std::string &s, char delim, Out result) {
-    std::stringstream ss;
-    ss.str(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        *(result++) = item;
-    }
-}
-
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, std::back_inserter(elems));
-    return elems;
-}
-
-string& trim(string &str, string::size_type pos = 0){
-    static const string delim = " \t";
+// functions to solve problems
+template <class Type> Type str_to_num(const string& str);                         // convert string to number
+template<typename Out> void split(const std::string &s, char delim, Out result);  //
+vector<string> split(const string &s, char delim);                                // split string by char delim
+string& trim(string &str, string::size_type pos = 0){                             // delete all the space in one line
+    string delim = " \t";
     pos = str.find_first_of(delim, pos);
     if (pos == string::npos)
         return str;
     return trim(str.erase(pos, 1));
 }
+
+void debug();                                        // print detail information
+void load_names();                                   // load xx.names and save features
+void load_data();                                    // load xx.data and split data for naive_bayes & calculate mean and variance
+void do_naive_bayes();                               // load xx.test and run naive bayes classification algorithm
+
+// main function
+int main(int argc, char const *argv[]){
+
+    if( argc == 2 ){
+        file_name = argv[1];    
+    }else{
+        cout << "please input file name: ";
+        cin >> file_name;
+    }
+
+    load_names();
+    load_data();
+    do_naive_bayes();
+
+    return 0;
+}
+
+
+
 
 
 void load_names(){
@@ -82,9 +92,6 @@ void load_names(){
     }
     class_str = trim(class_str);
     class_vector = split(class_str, ',');
-    // for(int j = 0; j < class_vector.size(); ++j){
-    //     cout << class_vector[j] << endl;
-    // }
 
     feature_number = 0;
     getline(names,space_str); // read space
@@ -94,7 +101,7 @@ void load_names(){
         if(value_str == "") continue;
         vector<string> tmp = split(value_str, ':');
         feature_vector.push_back(tmp[0]);
-        if(tmp[1]=="continuous"){
+        if(tmp[1]=="continuous"){ // just ignore 
 
         }else{
             value_vector[feature_number] = split(tmp[1], ',');
@@ -102,18 +109,16 @@ void load_names(){
         feature_number++;
     }
     for(int j = 0; j < class_vector.size(); ++j){
-       check[class_vector[j]] = j;
+       index[class_vector[j]] = j;
     }
     names.close();
     class_number = class_vector.size();
 }
 
 void debug(){
-
     for(int j = 0; j < class_vector.size(); ++j){
         cout << class_vector[j] << endl;
     }
-
     cout << endl;
     for (int i = 0; i < feature_number; ++i){
         for(int j = 0; j < value_vector[i].size(); ++j){
@@ -121,7 +126,6 @@ void debug(){
         }  
         cout << endl;
     }
-
 }
 
 void load_data(){
@@ -143,7 +147,7 @@ void load_data(){
         }else{
             number[class_value]++;
         }
-        class_data[ check[class_value] ][number[class_value]] = split(raw_str, ',');
+        class_data[ index[class_value] ][number[class_value]] = split(raw_str, ',');
     }
 
     for (int i = 0; i < feature_number; ++i){
@@ -154,7 +158,7 @@ void load_data(){
                 double mean_tmp = 0;
                 int class_cnt = number[class_vector[j]];
                 for (int k = 0; k < class_cnt; ++k){
-                    mean_tmp += stringToNum<double>(class_data[j][k][i]);
+                    mean_tmp += str_to_num<double>(class_data[j][k][i]);
                 }
                 mean_tmp /= class_cnt;
                 mean[j][i] = mean_tmp;
@@ -170,8 +174,8 @@ void load_data(){
                 double mean_tmp = mean[j][i];
                 double variance_tmp = 0;
                 for (int k = 0; k < class_cnt; ++k){
-                    variance_tmp += (stringToNum<double>(class_data[j][k][i]) - mean[j][i])
-                                    *(stringToNum<double>(class_data[j][k][i]) - mean[j][i]);
+                    variance_tmp += (str_to_num<double>(class_data[j][k][i]) - mean[j][i])
+                                    *(str_to_num<double>(class_data[j][k][i]) - mean[j][i]);
                 }
                 variance_tmp /= class_cnt;
                 variance[j][i] = variance_tmp;
@@ -187,20 +191,21 @@ void load_data(){
 void do_naive_bayes(){
     string load_file = file_name + ".test";
     string raw_str;
-    ifstream datas;
 
+    ifstream datas;
     datas.open (load_file);
-    double total_test = 0;
-    double total_acc = 0;
+
+    double total_test = 0.0;
+    double total_acc = 0.0;
     while(getline(datas,raw_str)){
         total_test++;
         raw_str = trim(raw_str);
-        vector<string> tmp = split(raw_str, ',');
-        int best_class = -1;
-        double max_p = -1;
+        vector<string> tmp = split(raw_str, ','); // split the data by , & save the featrues in vector tmp
+        int best_class = -1.0;
+        double max_p = -1.0;
         for (int i = 0; i < class_number; ++i){
             int class_cnt = number[class_vector[i]];
-            double p = ((double)class_cnt + 1.0 )/ (total_data + class_number * 1.0);
+            double p = ((double)class_cnt + 1.0 )/ (total_data + class_number * 1.0); // using laplace correction
             // double p = ((double)class_cnt)/ (total_data);
             
             for (int k = 0; k < feature_number; ++k){
@@ -215,13 +220,13 @@ void do_naive_bayes(){
                             cnt++;
                         }
                     }
-                    double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size());
+                    double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size()); // using laplace correction
                     // double pp = (cnt) / (double)(class_cnt);
                     probability[make_pair(i,tmp[k])] = pp;
                     p = p * pp;
                 }else{
-                    double x = stringToNum<double>(tmp[k]);
-                    double pp = 1.0/(sqrt(pi * 2 * variance[i][k]))
+                    double x = str_to_num<double>(tmp[k]);
+                    double pp = 1.0/(sqrt(pi * 2 * variance[i][k]))              // using normal distribution to cal probability
                                 * exp(( -(x-mean[i][k]) * (x-mean[i][k])) / ( 2 * variance[i][k] )  );
                     p = p * pp;
 
@@ -236,15 +241,30 @@ void do_naive_bayes(){
             total_acc++;
         }
     }
-    cout << total_acc / total_test << endl;
+    cout << "acc: " << total_acc / total_test << endl;
 }
 
-int main(int argc, char const *argv[]){
+template <class Type>  
+Type str_to_num(const string& str)  {  
+    istringstream iss(str);  
+    Type num;  
+    iss >> num;  
+    return num;      
+}  
 
-    file_name = argv[1];
-    load_names();
-    // debug();
-    load_data();
-    do_naive_bayes();
-    return 0;
+template<typename Out>
+void split(const std::string &s, char delim, Out result) {
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        *(result++) = item;
+    }
 }
+
+vector<string> split(const string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, std::back_inserter(elems));
+    return elems;
+}
+

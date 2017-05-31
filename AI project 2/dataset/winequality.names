@@ -1,0 +1,13 @@
+3,4,5,6,7,8,9.
+
+fixed-acidity: continuous.
+volatile-acidity:continuous.
+citric-acid: continuous.
+residual-sugar: continuous.
+chlorides: continuous.
+free-sulfur-dioxide: continuous.
+total-sulfur-dioxide: continuous.
+density: continuous.
+pH: continuous.
+sulphates: continuous.
+alcohol: continuous.

@@ -91,6 +91,7 @@ void load_names(){
     while(getline(names,value_str)){
         value_str = value_str.substr(0,value_str.length()-1);
         value_str = trim(value_str);
+        if(value_str == "") continue;
         vector<string> tmp = split(value_str, ':');
         feature_vector.push_back(tmp[0]);
         if(tmp[1]=="continuous"){

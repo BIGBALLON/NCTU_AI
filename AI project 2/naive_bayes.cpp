@@ -37,7 +37,7 @@ double mean[MAX_CLASS][MAX_VALUE];
 double variance[MAX_CLASS][MAX_VALUE];
 
 // save the probability to save time
-map< pair<int,string>, double> probability;
+map< pair<int, pair<int,string> >, double> probability;
 
 // functions to solve problems
 template <class Type> Type str_to_num(const string& str);                         // convert string to number
@@ -205,24 +205,23 @@ void do_naive_bayes(){
         double max_p = -1.0;
         for (int i = 0; i < class_number; ++i){
             int class_cnt = number[class_vector[i]];
-            double p = ((double)class_cnt + 1.0 )/ (total_data + class_number * 1.0); // using laplace correction
-            // double p = ((double)class_cnt)/ (total_data);
+            // double p = ((double)class_cnt + 1.0 )/ (total_data + class_number * 1.0); // using laplace correction
+            double p = ((double)class_cnt)/ ((double)total_data);
             
             for (int k = 0; k < feature_number; ++k){
-                double cnt = 0;
-                if(probability.find(make_pair(i,tmp[k])) != probability.end()){
-                    p = p * probability[make_pair(i,tmp[k])];
-                    continue;
-                }
                 if( continuous[k] == 0 ){
+                    double cnt = 0;
+                    if(probability.find(make_pair(i, make_pair(k,tmp[k]))) != probability.end()){
+                        p = p * probability[make_pair(i, make_pair(k,tmp[k]))];
+                        continue;
+                    }
                     for (int j = 0; j < class_cnt; ++j){
                         if( class_data[i][j][k] == tmp[k] ){
                             cnt++;
                         }
                     }
-                    double pp = (cnt + 1.0) / (double)(class_cnt + value_vector[k].size()); // using laplace correction
-                    // double pp = (cnt) / (double)(class_cnt);
-                    probability[make_pair(i,tmp[k])] = pp;
+                    double pp = (cnt + 1.0) / ((double)class_cnt + value_vector[k].size()); // using laplace correction
+                    probability[make_pair(i, make_pair(k,tmp[k]))] = pp;
                     p = p * pp;
                 }else{
                     double x = str_to_num<double>(tmp[k]);

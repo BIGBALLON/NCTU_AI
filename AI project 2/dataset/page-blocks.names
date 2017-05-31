@@ -1,0 +1,13 @@
+1,2,3,4,5
+
+   height:   continuous.
+   lenght:   continuous.
+   area:     continuous.
+   eccen:    continuous.
+   p_black:  continuous.
+   p_and:    continuous.
+   mean_tr:  continuous.
+   blackpix: continuous.
+   blackand: continuous.
+   wb_trans: continuous.
+   

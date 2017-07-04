@@ -1,6 +1,6 @@
 # NCTU Artificial Intelligence Spring 2017
 
-> Grading Policy:    quizs(30%) + 2 exams(50%) + 2 projects(24%)
+> Grading Policy:    quizs(30%) + 2 exams(50%) + 2 projects(24%)  
 > Final score:       57x0.15+55x0.15+88x0.25+164x0.25+97x0.12+87x0.12 = 101.88 = 100
 
 ## About Course
